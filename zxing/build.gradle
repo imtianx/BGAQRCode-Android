@@ -10,6 +10,6 @@ android {
 }
 
 dependencies {
-    api 'com.google.zxing:core:3.3.3'
+    api 'com.google.zxing:core:3.5.1'
     api project(':qrcodecore')
 }
