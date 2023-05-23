@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.Binarizer;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.MultiFormatReader;
@@ -95,11 +96,13 @@ public class ZXingView extends QRCodeView {
                 source = new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
             }
 
-            rawResult = mMultiFormatReader.decodeWithState(new BinaryBitmap(new GlobalHistogramBinarizer(source)));
+            rawResult = getRawResult(new GlobalHistogramBinarizer(source));
             if (rawResult == null) {
-                rawResult = mMultiFormatReader.decodeWithState(new BinaryBitmap(new HybridBinarizer(source)));
+                rawResult = getRawResult(new HybridBinarizer(source));
                 if (rawResult != null) {
                     BGAQRCodeUtil.d("GlobalHistogramBinarizer 没识别到，HybridBinarizer 能识别到");
+                } else {
+                    rawResult = getRawResult(new HybridBinarizer(source.invert()));
                 }
             }
         } catch (Exception e) {
@@ -140,5 +143,15 @@ public class ZXingView extends QRCodeView {
 
     private boolean isNeedAutoZoom(BarcodeFormat barcodeFormat) {
         return isAutoZoom() && barcodeFormat == BarcodeFormat.QR_CODE;
+    }
+
+    private Result getRawResult(Binarizer binarizer) {
+        Result rawResult;
+        try {
+            rawResult = mMultiFormatReader.decodeWithState(new BinaryBitmap(binarizer));
+        } catch (Exception e) {
+            rawResult = null;
+        }
+        return rawResult;
     }
 }
